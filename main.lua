@@ -2,7 +2,6 @@ local win = am.window{
 	title = "Pup Portal",
 	width = 800,
 	height = 600,
-	clear_color = vec4(1, 1, .1, 1),
 	borderless = false,
 	msaa_samples = 4,
 	orientation = "landscape",
@@ -29,9 +28,11 @@ function rand_tile()
 	elseif choice == 4 then
 		return am.sprite(world_sprite.rockDirt_moss3)
 	else
+		local tmp = am.translate(0,60)^am.sprite(world_sprite.treeBlue_low)
+		tmp"blend".mode = "alpha"
 		return am.group()^
 		{am.sprite(world_sprite.rockDirt),
-		am.translate(0,60)^am.sprite(world_sprite.treeBlue_low)}
+		tmp}
 	end
 end
 
@@ -48,7 +49,7 @@ local title =
 		,
 		am.translate(0,-200)
 		^am.scale(2)
-		^am.text('Hit Spacebar to em"bark"', vec4(0,0,0,1))
+		^am.text('Hit Space to em"bark"', vec4(0,0,0,1))
 	}
 
 --The hextiles bg node
@@ -61,10 +62,11 @@ for row=8,-8,-1 do
 	else
 		row_offset = 28
 	end
-
+	--ros_offset shifts succesive rows by a bit on the x-axis to fit hex sprites
 	for column=-8,7 do
 		local tmp = am.translate(0+column*54+row_offset, 0+row*38)
 		local tile_type = rand_tile()
+		tile_type"blend".mode = "alpha"
 		tmp:append(tile_type)
 		env:append(tmp)
 	end
@@ -80,12 +82,17 @@ local title_scene =
 		title
 	}
 
+local trans_scene = 
+	am.group()
+	^{
+		env
+	}
 ---------------------------------------------------
 --Actions
 ---------------------------------------------------
 title_scene:action(function(scene)
 	if win:key_pressed("space") then
-		--win.scene = trans_scene
+		win.scene = trans_scene
 	end
 end)
 ---------------------------------------------------
