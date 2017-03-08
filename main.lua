@@ -77,10 +77,13 @@ for row=8,-8,-1 do
 	end
 end	
 
-local title_pup = am.translate(135,-20)
+local title_pup = am.translate(135,-20):tag"title_pup_pos"
 				  ^am.sprite(patch_sprite.patch_1_face)
 
 local rect_mask = am.rect(-400,-300,400,300,vec4(0))
+
+local patch_old = am.translate(-200,-200)
+				  ^am.sprite(patch_sprite.patch_old_sleep)
 -----------------------------------------------
 --Scenes
 -----------------------------------------------
@@ -97,10 +100,17 @@ local trans_scene =
 	^{
 		am.color_mask(false,false,true,false)
 		^env,
-		am.color_mask(true,false,false,false)
-		^title_pup,
 		title1,
-		rect_mask
+		rect_mask,
+		am.color_mask(true,false,false,false)
+		^title_pup
+	}
+
+local game_scene =
+	am.group()
+	^{
+		rect_mask,
+		patch_old,
 	}
 ---------------------------------------------------
 --Actions
@@ -115,12 +125,45 @@ title_scene:action(function(scene)
 end)
 
 trans_scene:action(am.play(13416302,false,0.5,2))
-act_arr[1]= am.delay(2)
-act_arr[2]= function(scene)
-				scene"rect".color = scene"rect".color + vec4(0,0,0,0.01)
-			end
+
+act_arr[1]= am.delay(1)
+
+act_arr[2]= 
+function(scene)
+	if scene"rect".color.a < 1 then
+		scene"rect".color = scene"rect".color + vec4(0,0,0,0.01)
+	else
+		return true
+	end
+end
+
+act_arr[3]= 
+function(scene)
+	scene"title_pup_pos":action(am.tween(1.5, {x = -200, y = -200}, am.ease.sine))
+	return true
+end
+
+act_arr[4]= am.delay(1.5)
+
+act_arr[5]= 
+function(scene)
+	scene:remove_all()
+	win.scene = game_scene
+	return true
+end
 
 trans_scene:action(am.series(act_arr))
+
+game_scene:action(am.play("assets/betterdays.ogg",true,1,1))
+
+game_scene:action(function(scene)
+	if scene"rect".color.a >0 then
+		scene"rect".color = scene"rect".color - vec4(0,0,0,0.005)
+	else
+		return true
+	end
+end)
+
 ---------------------------------------------------
 --Main
 ---------------------------------------------------
